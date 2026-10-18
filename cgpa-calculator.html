@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIUB CGPA Calculator</title>
+  <style>
+    :root { --ink:#15233b; --muted:#65758e; --paper:#fff; --line:#dce5f1; --blue:#2256d7; --navy:#12316d; --mint:#dbf6ea; --coral:#ff785f; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); font:16px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: linear-gradient(135deg, #0b1020, #172554, #1e3a8a);}
+    .shell { max-width:1060px; margin:auto; padding:42px 22px 60px; }
+    header { display:flex; gap:22px; align-items:center; margin-bottom:28px; }
+    .logo { display:grid; place-items:center; width:58px; height:58px; border-radius:18px; color:#fff; background:linear-gradient(145deg,#2c66ef,#173f9f); font-size:22px; font-weight:800; box-shadow:0 10px 22px #2256d73d; }
+    h1 { margin:0; font-size:clamp(1.7rem,4vw,2.55rem ); letter-spacing:-.04em; color:#dbeafe; }
+    header p { margin:4px 0 0; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:1.55fr .85fr; gap:22px; }
+    .card { background:#fffffff0; border:1px solid #ffffff; border-radius:22px; padding:26px; box-shadow:0 15px 45px #173f9f12; }
+    .step { display:inline-block; padding:4px 10px; border-radius:99px; background:#e8efff; color:var(--blue); font-size:.75rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    h2 { margin:10px 0 4px; font-size:1.25rem; letter-spacing:-.02em; }
+    .hint { margin:0 0 20px; color:var(--muted); font-size:.9rem; }
+    .setup { display:flex; align-items:end; gap:12px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    label { display:block; color:#42536d; font-size:.82rem; font-weight:700; }
+    input { width:100%; margin-top:6px; padding:11px 12px; border:1px solid #cbd7e7; border-radius:10px; color:var(--ink); font:inherit; outline:none; background:#fff; }
+    input:focus { border-color:var(--blue); box-shadow:0 0 0 3px #2256d71e; }
+    .count { max-width:145px; }
+    button { border:0; border-radius:10px; padding:12px 16px; color:#fff; background:var(--blue); font:inherit; font-weight:750; cursor:pointer; transition:.16s transform,.16s background; }
+    button:hover { background:#1747bc; transform:translateY(-1px); }
+    button.ghost { color:var(--blue); background:#e8efff; }
+    .subjects { margin-top:22px; }
+    .subject { display:grid; grid-template-columns:1.35fr .55fr .8fr .8fr auto; gap:10px; align-items:end; padding:14px 0; border-bottom:1px solid var(--line); }
+    .subject:first-child { border-top:1px solid var(--line); }
+    .subject button { padding:11px 12px; background:#fff0ee; color:#c14332; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+    .results { display:flex; flex-direction:column; gap:15px; }
+    .cgpa-box { padding:23px; border-radius:17px; color:white; background:linear-gradient(135deg,#12316d,#2256d7); }
+    .cgpa-box.mint { color:var(--ink); background:linear-gradient(135deg,#d7f8e8,#a9ead0); }
+    .cgpa-box.mint small, .cgpa-box.mint .credits { color:#326259; }
+    .cgpa-box small { display:block; color:#cbd9ff; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    #totalCgpa { margin:4px 0 0; font-size:3.25rem; line-height:1; letter-spacing:-.075em; }
+    .credits { margin:7px 0 0; color:#d8e5ff; font-size:.9rem; }
+    .table-wrap { overflow:auto; }
+    table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    th { padding:0 7px 9px; color:var(--muted); font-size:.72rem; text-align:left; text-transform:uppercase; letter-spacing:.06em; }
+    td { padding:11px 7px; border-top:1px solid var(--line); }
+    td:last-child { color:var(--blue); font-weight:800; }
+    .grade-key { padding:18px; border-radius:16px; background:var(--mint); }
+    .grade-key h3 { margin:0 0 9px; font-size:.92rem; }
+    .grade-key p { margin:0; font-size:.78rem; color:#36596a; }
+    .empty { color:var(--muted); font-size:.9rem; }
+    .note { margin:26px 4px 0; color:var(--muted); font-size:.78rem; text-align:center; }
+    @media (max-width:780px) { .grid { grid-template-columns:1fr; } .subject { grid-template-columns:1fr 1fr; } .subject label:first-child { grid-column:1/-1; } .subject button { grid-column:2; } }
+    @media (max-width:430px) { .shell { padding:24px 14px 40px; } .card { padding:19px; } .setup { align-items:stretch; flex-direction:column; } .count { max-width:none; } .setup button { width:100%; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header><div class="logo">A+</div><div><h1>CGPA Calculator</h1><p>Calculate your semester CGPA using the AIUB grading scale.</p></div></header>
+    <div class="grid">
+      <section class="card">
+        <span class="step">Subject setup</span>
+        <h2>Add your courses</h2>
+        <p class="hint">Enter the number of subjects first, then fill in each course's name, credit, midterm mark and final-exam mark.</p>
+        <div class="setup"><label class="count">Number of subjects<input id="subjectCount" type="number" min="1" max="30" value="4" /></label><button type="button" id="makeRows">Create subjects</button></div>
+        <div id="subjects" class="subjects"></div>
+        <div class="actions"><button type="button" id="calculate">Calculate CGPA</button><button type="button" class="ghost" id="addSubject">+ Add one subject</button></div>
+      </section>
+      <aside class="results">
+        <section class="cgpa-box mint"><small>Midterm CGPA</small><div id="midCgpa">—</div><p class="credits" id="midCredits">Add midterm marks to calculate</p></section>
+        <section class="cgpa-box mint"><small>Final-exam CGPA</small><div id="finalCgpa">—</div><p class="credits" id="finalCredits">Add final-exam marks to calculate</p></section>
+        <section class="cgpa-box"><small>Semester CGPA</small><div id="totalCgpa">—</div><p class="credits" id="creditTotal">40% midterm + 60% final exam</p></section>
+        <section class="card"><span class="step">Result</span><h2>Course breakdown</h2><div class="table-wrap"><table><thead><tr><th>Subject</th><th>Mid</th><th>Final</th><th>Combined</th><th>Grade</th><th>Point</th></tr></thead><tbody id="resultRows"><tr><td colspan="6" class="empty">Your calculated grades will appear here.</td></tr></tbody></table></div></section>
+        <section class="grade-key"><h3>AIUB grade scale used</h3><p>A+ 90–100 = 4.00 · A 85–89 = 3.75 · B+ 80–84 = 3.50 · B 75–79 = 3.25 · C+ 70–74 = 3.00 · C 65–69 = 2.75 · D+ 60–64 = 2.50 · D 50–59 = 2.25 · F &lt;50 = 0.00</p></section>
+      </aside>
+    </div>
+    <p class="note">Semester score for each subject = (midterm × 40%) + (final exam × 60%). CGPA = Σ(credit × grade point) ÷ total credits.</p>
+  </main>
+  <script>
+    const subjects = document.querySelector('#subjects');
+    const count = document.querySelector('#subjectCount');
+    const resultRows = document.querySelector('#resultRows');
+    const totalCgpa = document.querySelector('#totalCgpa');
+    const creditTotal = document.querySelector('#creditTotal');
+    const midCgpa = document.querySelector('#midCgpa');
+    const finalCgpa = document.querySelector('#finalCgpa');
+    const midCredits = document.querySelector('#midCredits');
+    const finalCredits = document.querySelector('#finalCredits');
+    const gradeFor = mark => {
+      if (mark >= 90) return ['A+', 4.00]; if (mark >= 85) return ['A', 3.75];
+      if (mark >= 80) return ['B+', 3.50]; if (mark >= 75) return ['B', 3.25];
+      if (mark >= 70) return ['C+', 3.00]; if (mark >= 65) return ['C', 2.75];
+      if (mark >= 60) return ['D+', 2.50]; if (mark >= 50) return ['D', 2.25]; return ['F', 0.00];
+    };
+    function row(n) {
+      const item = document.createElement('div'); item.className = 'subject';
+      item.innerHTML = `<label>Subject name<input class="name" type="text" value="Subject ${n}" aria-label="Subject ${n} name"></label><label>Credit<input class="credit" type="number" min="0.25" step="0.25" value="3" aria-label="Subject ${n} credit"></label><label>Midterm (0–100)<input class="mid" type="number" min="0" max="100" step="0.01" placeholder="e.g. 78" aria-label="Subject ${n} midterm mark"></label><label>Final exam (0–100)<input class="final" type="number" min="0" max="100" step="0.01" placeholder="e.g. 82" aria-label="Subject ${n} final exam mark"></label><button type="button" title="Remove subject" aria-label="Remove subject">×</button>`;
+      item.querySelector('button').onclick = () => { item.remove(); count.value = subjects.children.length; calculate(); };
+      subjects.append(item);
+    }
+    function createRows() { const n = Math.max(1, Math.min(30, Number(count.value) || 1)); count.value = n; subjects.innerHTML = ''; for(let i=1;i<=n;i++) row(i); resetResults(); }
+    function resetResults() { totalCgpa.textContent='—'; midCgpa.textContent='—'; finalCgpa.textContent='—'; creditTotal.textContent='40% midterm + 60% final exam'; midCredits.textContent='Add midterm marks to calculate'; finalCredits.textContent='Add final-exam marks to calculate'; resultRows.innerHTML='<tr><td colspan="6" class="empty">Your calculated grades will appear here.</td></tr>'; }
+    function calculate() {
+      const data = [...subjects.querySelectorAll('.subject')].map((el, i) => ({ name:el.querySelector('.name').value.trim() || `Subject ${i+1}`, credit:Number(el.querySelector('.credit').value), mid:Number(el.querySelector('.mid').value), final:Number(el.querySelector('.final').value), hasMid:el.querySelector('.mid').value !== '', hasFinal:el.querySelector('.final').value !== '' }));
+      const isValid = (x, exam) => x.credit > 0 && x[exam] >= 0 && x[exam] <= 100;
+      const midData = data.filter(x => x.hasMid && isValid(x, 'mid'));
+      const finalData = data.filter(x => x.hasFinal && isValid(x, 'final'));
+      const complete = data.filter(x => x.hasMid && x.hasFinal && isValid(x, 'mid') && isValid(x, 'final'));
+      const cgpa = (items, score) => { if (!items.length) return null; const c=items.reduce((s,x)=>s+x.credit,0); return [items.reduce((s,x)=>s+x.credit*gradeFor(score(x))[1],0)/c,c]; };
+      const midResult=cgpa(midData,x=>x.mid), finalResult=cgpa(finalData,x=>x.final), semesterResult=cgpa(complete,x=>x.mid*.4+x.final*.6);
+      if (!midResult && !finalResult && !semesterResult) { resetResults(); return; }
+      midCgpa.textContent=midResult ? midResult[0].toFixed(2) : '—'; midCredits.textContent=midResult ? `Based on ${midResult[1]} midterm credits` : 'Add midterm marks to calculate';
+      finalCgpa.textContent=finalResult ? finalResult[0].toFixed(2) : '—'; finalCredits.textContent=finalResult ? `Based on ${finalResult[1]} final-exam credits` : 'Add final-exam marks to calculate';
+      totalCgpa.textContent=semesterResult ? semesterResult[0].toFixed(2) : '—'; creditTotal.textContent=semesterResult ? `Based on ${semesterResult[1]} completed credits` : 'Enter both scores for semester CGPA';
+      resultRows.innerHTML=complete.length ? complete.map(x=>{ const score=x.mid*.4+x.final*.6; const [letter,point]=gradeFor(score); return `<tr><td>${escapeHtml(x.name)}</td><td>${x.mid}</td><td>${x.final}</td><td>${score.toFixed(2)}</td><td>${letter}</td><td>${point.toFixed(2)}</td></tr>`; }).join('') : '<tr><td colspan="6" class="empty">Enter both midterm and final marks to see semester results.</td></tr>';
+    }
+    function escapeHtml(s) { const e=document.createElement('span'); e.textContent=s; return e.innerHTML; }
+    document.querySelector('#makeRows').onclick=createRows; document.querySelector('#addSubject').onclick=()=>{ row(subjects.children.length+1); count.value=subjects.children.length; };
+    document.querySelector('#calculate').onclick=calculate;
+    subjects.addEventListener('keydown', e=>{ if(e.key==='Enter') calculate(); });
+    createRows();
+  </script>
+</body>
+</html>
